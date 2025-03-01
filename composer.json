@@ -33,7 +33,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Changole\\OtelLogging\\OtelLoggingServiceProvider"
+                "Changole\\OtelLogging\\Otel\\OtelLoggingServiceProvider"
             ]
         }
     }
