@@ -144,7 +144,7 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 
 ## Credits
 
-- [Emmanuel Changole](https://github.com/changole)
+- [Emmanuel Changole](https://github.com/EmmanuelChangole)
 - [All Contributors](../../contributors)
 
 ## About OpenTelemetry
