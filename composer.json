@@ -1,0 +1,40 @@
+{
+    "name": "changole/otel-logging",
+    "description": "OpenTelemetry log handler for Laravel applications that sends logs to OTLP-compatible collectors",
+    "type": "library",
+    "require": {
+        "monolog/monolog": "^2.0|^3.0",
+        "guzzlehttp/guzzle": "^7.0",
+        "illuminate/support": "^8.0|^9.0|^10.0",
+        "illuminate/log": "^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^9.0|^10.0",
+        "mockery/mockery": "^1.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0|^10.0",
+        "mockery/mockery": "^1.5",
+        "orchestra/testbench": "^8.33",
+        "laravel/sail": "^1.41"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Changole\\OtelLogging\\": "src/",
+            "Changole\\OtelLogging\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Emmanuel Changole",
+            "email": "manuchangole@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Changole\\OtelLogging\\OtelLoggingServiceProvider"
+            ]
+        }
+    }
+}

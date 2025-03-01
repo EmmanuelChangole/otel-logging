@@ -1,0 +1,19 @@
+
+services:
+  php:
+    image: php:8.2-cli
+    container_name: php-library-test
+    user: "root"
+    volumes:
+      - .:/app
+    working_dir: /app
+    tty: true  # Keeps container running
+    stdin_open: true # Keeps container interactive
+    command: >
+      bash -c "
+      apt-get update &&
+      apt-get install -y libxml2-dev libzip-dev unzip git libonig-dev &&
+      docker-php-ext-install mbstring xml zip &&
+      curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer &&
+      composer install --prefer-dist --no-progress &&
+      tail -f /dev/null"  # Keeps container alive
