@@ -1,12 +1,14 @@
 <?php
 
-namespace Changole\OtelLogging\Otel;
+namespace Changole\OtelLogging;
 
+use Changole\OtelLogging\Otel\OtelLogHandler;
 use Illuminate\Support\ServiceProvider;
+use Changole\OtelLogging\Otel\Config;
+use Changole\OtelLogging\Otel\AttributeFormatter;
+use Changole\OtelLogging\Otel\SeverityMapper;
+use Changole\OtelLogging\Otel\LogPayloadBuilder;
 
-/**
- * OpenTelemetry logging service provider.
- */
 class OtelLoggingServiceProvider extends ServiceProvider
 {
     /**
@@ -19,12 +21,31 @@ class OtelLoggingServiceProvider extends ServiceProvider
             __DIR__ . '/config/otel-logging.php', 'otel-logging'
         );
 
-        // Register the Config class
+        // Register services
         $this->app->singleton(Config::class, function ($app) {
             return new Config($app['config']);
         });
 
-        // Other services...
+        $this->app->singleton(AttributeFormatter::class, function ($app) {
+            return new AttributeFormatter();
+        });
+
+        $this->app->singleton(SeverityMapper::class, function ($app) {
+            return new SeverityMapper();
+        });
+
+        $this->app->singleton(LogPayloadBuilder::class, function ($app) {
+            return new LogPayloadBuilder(
+                $app->make(AttributeFormatter::class),
+                $app['config']->get('otel-logging.attributes.global', [])
+            );
+        });
+
+        // Register log channel
+        $this->app->make('config')->set('logging.channels.otel', [
+            'driver' => 'monolog',
+            'handler' => OtelLogHandler::class,
+        ]);
     }
 
     /**

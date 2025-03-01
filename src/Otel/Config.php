@@ -53,8 +53,6 @@ class Config
      */
     public function getEnvironment(): string
     {
-        dump($this->config->get('otel-logging')); // Debug all otel-logging config
-        dump($this->config->get('otel-logging.env'));
         return $this->config->get('otel-logging.env', 'production');
     }
 
