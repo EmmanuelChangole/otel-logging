@@ -57,7 +57,7 @@ Add the OpenTelemetry channel to your logging configuration in `config/logging.p
     // ...
     'otel' => [
         'driver' => 'monolog',
-        'handler' => Changole\OtelLogging\OtelLogHandler::class,
+        'handler' => Changole\OtelLogging\Otel\OtelLogHandler::class,
     ],
     
     // Or use it in a stack
@@ -149,4 +149,4 @@ The MIT License (MIT). Please see [License File](LICENSE.md) for more informatio
 
 ## About OpenTelemetry
 
-[OpenTelemetry](https://opentelemetry.io/) is a collection of tools, APIs, and SDKs used to instrument, generate, collect, and export telemetry data (metrics, logs, and traces) for analysis in order to understand your software's performance and behavior.
+[OpenTelemetry](https://opentelemetry.io/) is a collection of tools, APIs, and SDKs used to instrument, generate, collect, and export telemetry data (logs) for analysis in order to understand what is happening on your software's.
