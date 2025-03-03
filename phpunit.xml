@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory suffix=".php">./src</directory>
+        </include>
+    </source>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="OTEL_ENABLED" value="true"/>
+        <env name="OTEL_EXPORTER_ENDPOINT" value="https://test-collector.example.com/v1/logs"/>
+        <env name="OTEL_SERVICE_NAME" value="test-app"/>
+        <env name="OTEL_HTTP_TIMEOUT" value="1"/>
+    </php>
+</phpunit>
