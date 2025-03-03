@@ -10,27 +10,12 @@ composer.lock
 # IDE Files
 /.idea/
 /.vscode/
-/*.sublime-project
-/*.sublime-workspace
 /.php_cs.cache
 /.php-cs-fixer.cache
 
-# OS Generated Files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
 
 # Environment Files
 /.env
-/.env.backup
-
-# Build Files
-/build/
-/dist/
 
 # Logs
 *.log
@@ -38,16 +23,3 @@ Thumbs.db
 # Cache
 /.cache/
 
-# Docker
-docker-compose.override.yml
-
-# Node (if using any JS tools)
-/node_modules/
-/npm-debug.log
-/yarn-error.log
-/yarn.lock
-/package-lock.json
-
-# Other
-/.history/
-/storage/*.key
