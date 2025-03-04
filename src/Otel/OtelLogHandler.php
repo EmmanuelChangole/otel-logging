@@ -90,12 +90,21 @@ class OtelLogHandler extends AbstractProcessingHandler
      */
     protected function handleSendError(\Throwable $e): void
     {
-        if ($this->fallbackLogger) {
-            $this->fallbackLogger->error('Failed to send log to OpenTelemetry: ' . $e->getMessage(), [
-                'exception' => $e,
-            ]);
-        } elseif ($this->config->isDebugEnabled()) {
-            error_log('Failed to send log to OpenTelemetry: ' . $e->getMessage());
+        static  $inErrorHandler = false;
+        if($inErrorHandler) {
+            return; //We are already in the error handler exit to prevent loops
+        }
+        try{
+            $inErrorHandler = true;
+            if($this->fallbackLogger){
+                $this->fallbackLogger->error('Failed to send log to OpenTelemetry: ' . $e->getMessage(), [
+                    'exception' => $e,
+                ]);
+            } elseif ($this->config->isDebugEnabled()) {
+                error_log('Failed to send log to OpenTelemetry: ' . $e->getMessage());
+            }
+        } finally {
+            $inErrorHandler = false; //Reset the error handler even if an exception is thrown
         }
     }
 }
