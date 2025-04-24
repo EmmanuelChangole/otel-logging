@@ -16,6 +16,10 @@ class OtelLoggingServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        if (!$this->isEnabled()) {
+            return;
+        }
+
         // Merge config
         $this->mergeConfigFrom(
             __DIR__ . '/config/otel-logging.php', 'otel-logging'
@@ -57,5 +61,10 @@ class OtelLoggingServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/config/otel-logging.php' => config_path('otel-logging.php'),
         ], 'otel-logging-config');
+    }
+
+    private function isEnabled(): bool
+    {
+        return config('otel-logging.enabled', env('OTEL_ENABLED', true));
     }
 }
