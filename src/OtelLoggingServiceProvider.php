@@ -65,6 +65,6 @@ class OtelLoggingServiceProvider extends ServiceProvider
 
     private function isEnabled(): bool
     {
-        return config('otel-logging.enabled', env('OTEL_ENABLED', true));
+        return config('otel-logging.enabled', env('OTEL_ENABLED', false));
     }
 }

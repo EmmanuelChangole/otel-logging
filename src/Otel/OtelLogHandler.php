@@ -21,6 +21,8 @@ class OtelLogHandler extends AbstractProcessingHandler
     protected LogPayloadBuilder $payloadBuilder;
     protected ?LoggerInterface $fallbackLogger;
 
+    protected bool $isDisabled = false;
+
     /**
      * Constructor.
      */
@@ -33,10 +35,22 @@ class OtelLogHandler extends AbstractProcessingHandler
         ?SeverityMapper $severityMapper = null,
         ?LogPayloadBuilder $payloadBuilder = null,
         ?LoggerInterface $fallbackLogger = null
+
     ) {
         parent::__construct($level, $bubble);
 
         $this->config = $config ?? new Config(app('config'));
+
+        if (!$this->config->isEnabled()) {
+            $this->isDisabled = true;
+            $this->client = new Client();
+            $this->attributeFormatter = new AttributeFormatter();
+            $this->severityMapper = new SeverityMapper();
+            $this->payloadBuilder = new LogPayloadBuilder($this->attributeFormatter);
+            $this->fallbackLogger = null;
+            return;
+        }
+
         $this->attributeFormatter = $attributeFormatter ?? new AttributeFormatter();
         $this->severityMapper = $severityMapper ?? new SeverityMapper();
         $this->payloadBuilder = $payloadBuilder ?? new LogPayloadBuilder($this->attributeFormatter);
@@ -53,6 +67,10 @@ class OtelLogHandler extends AbstractProcessingHandler
      */
     protected function write(LogRecord $record): void
     {
+        if ($this->isDisabled) {
+            return;
+        }
+
         try {
             $payload = $this->payloadBuilder->build(
                 $record,
