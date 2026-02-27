@@ -5,8 +5,7 @@ namespace Changole\OtelLogging\Otel;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Monolog\Handler\AbstractProcessingHandler;
-use Monolog\Level;
-use Monolog\LogRecord;
+use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -27,7 +26,7 @@ class OtelLogHandler extends AbstractProcessingHandler
      * Constructor.
      */
     public function __construct(
-        $level = Level::Debug,
+        $level = Logger::DEBUG,
         bool $bubble = true,
         ?Client $client = null,
         ?Config $config = null,
@@ -65,7 +64,7 @@ class OtelLogHandler extends AbstractProcessingHandler
     /**
      * @inheritdoc
      */
-    protected function write(LogRecord $record): void
+    protected function write($record): void
     {
         if ($this->isDisabled) {
             return;
@@ -93,7 +92,12 @@ class OtelLogHandler extends AbstractProcessingHandler
      */
     protected function sendPayload(array $payload): void
     {
-        $this->client->post($this->config->getEndpoint(), [
+        $endpoint = trim($this->config->getEndpoint());
+        if ($endpoint === '') {
+            throw new \RuntimeException('OTEL exporter endpoint is not configured.');
+        }
+
+        $this->client->post($endpoint, [
             'headers' => [
                 'Content-Type' => 'application/json',
             ],

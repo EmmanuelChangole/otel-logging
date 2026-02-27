@@ -3,7 +3,7 @@
 namespace Changole\OtelLogging\Otel;
 
 use GuzzleHttp\Client;
-use Monolog\Level;
+use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -14,15 +14,14 @@ class OtelHandlerFactory
     /**
      * Create a new OtelLogHandler instance with all dependencies
      *
-     * @param array $config Configuration options
      * @param LoggerInterface|null $fallbackLogger Optional fallback logger
-     * @param int|Level $level The minimum logging level
+     * @param int $level The minimum logging level
      * @param bool $bubble Whether to bubble to other handlers
      * @return OtelLogHandler
      */
     public static function create(
         ?LoggerInterface $fallbackLogger = null,
-        int|Level        $level = Level::Debug,
+        int              $level = Logger::DEBUG,
         bool             $bubble = true
     ): OtelLogHandler {
         // Create configuration
@@ -40,8 +39,10 @@ class OtelHandlerFactory
 
 
         // Create payload builder
+        $globalAttributes = app('config')->get('otel-logging.attributes.global', []);
         $payloadBuilder = new LogPayloadBuilder(
             $attributeFormatter,
+            is_array($globalAttributes) ? $globalAttributes : []
         );
 
         // Create and return the handler

@@ -2,7 +2,7 @@
 
 namespace Changole\OtelLogging\Otel;
 
-use Monolog\Level;
+use Monolog\Logger;
 
 /**
  * Map Monolog levels to OpenTelemetry severity numbers.
@@ -14,14 +14,12 @@ class SeverityMapper
      *
      * @see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#severity-fields
      */
-    public const SEVERITY_FATAL = 1;
-    public const SEVERITY_ERROR = 2;
-    public const SEVERITY_ERROR2 = 3;  // Alternative ERROR level
-    public const SEVERITY_WARN = 4;
-    public const SEVERITY_INFO = 5;
-    public const SEVERITY_INFO2 = 9;   // Alternative INFO level
-    public const SEVERITY_DEBUG = 17;
-    public const SEVERITY_TRACE = 18;  // Not used by Monolog but here for completeness
+    public const SEVERITY_TRACE = 1;
+    public const SEVERITY_DEBUG = 5;
+    public const SEVERITY_INFO = 9;
+    public const SEVERITY_WARN = 13;
+    public const SEVERITY_ERROR = 17;
+    public const SEVERITY_FATAL = 21;
 
     /**
      * Map Monolog level to OpenTelemetry severity number.
@@ -32,25 +30,29 @@ class SeverityMapper
     public function mapLevelToSeverity(int $level): int
     {
         return match ($level) {
-            Level::Emergency->value => self::SEVERITY_FATAL,
-            Level::Alert->value, Level::Critical->value => self::SEVERITY_ERROR,
-            Level::Error->value => self::SEVERITY_ERROR2,
-            Level::Warning->value => self::SEVERITY_WARN,
-            Level::Notice->value => self::SEVERITY_INFO,
-            Level::Info->value => self::SEVERITY_INFO2,
-            Level::Debug->value => self::SEVERITY_DEBUG,
-            default => self::SEVERITY_INFO2,
+            Logger::EMERGENCY => 24,
+            Logger::ALERT => 23,
+            Logger::CRITICAL => 22,
+            Logger::ERROR => self::SEVERITY_ERROR,
+            Logger::WARNING => self::SEVERITY_WARN,
+            Logger::NOTICE, Logger::INFO => self::SEVERITY_INFO,
+            Logger::DEBUG => self::SEVERITY_DEBUG,
+            default => self::SEVERITY_INFO,
         };
     }
 
     /**
      * Get the text representation of a Monolog level.
      *
-     * @param Level $level Monolog level
+     * @param int $level Monolog level
      * @return string The lower-case text representation
      */
-    public function getLevelName(Level $level): string
+    public function getLevelName(int $level): string
     {
-        return strtolower($level->name);
+        try {
+            return strtolower(Logger::getLevelName($level));
+        } catch (\Throwable) {
+            return 'info';
+        }
     }
 }

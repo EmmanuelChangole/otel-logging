@@ -33,7 +33,7 @@ class Config
      */
     public function getEndpoint(): string
     {
-        return $this->config->get('otel-logging.exporter.endpoint');
+        return (string) $this->config->get('otel-logging.exporter.endpoint', '');
     }
 
     /**
@@ -43,7 +43,7 @@ class Config
      */
     public function getServiceName(): string
     {
-        return $this->config->get('otel-logging.service.name');
+        return (string) $this->config->get('otel-logging.service.name', 'laravel-app');
     }
 
     /**
@@ -53,7 +53,7 @@ class Config
      */
     public function getEnvironment(): string
     {
-        return $this->config->get('otel-logging.env', 'production');
+        return (string) $this->config->get('otel-logging.env', 'production');
     }
 
     /**

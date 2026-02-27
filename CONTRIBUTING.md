@@ -4,9 +4,17 @@ This guide provides detailed steps to install and configure the `changole/otel-l
 
 ## Prerequisites
 
-- Laravel 8.x, 9.x, 10.x, or 11.x
+- Laravel 8.x, 9.x, 10.x, 11.x, or 12.x
 - PHP 8.0 or higher
 - An OpenTelemetry collector endpoint
+
+### Development prerequisites (for this repository)
+
+- PHP 8.2 or higher (required by current test tooling)
+- Composer 2.8+ recommended
+- PHPUnit 11/12 (managed via `composer install`)
+
+> Note: If you see many `E_STRICT` deprecation notices while running Composer on PHP 8.4+, those come from an older global Composer phar installation, not from this package.
 
 ## Step 1: Install the Package
 

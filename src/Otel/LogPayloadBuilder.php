@@ -2,34 +2,34 @@
 
 namespace Changole\OtelLogging\Otel;
 
-use Monolog\LogRecord;
-
 /**
  * Builder for creating an OTLP log payload.
  */
 class LogPayloadBuilder
 {
     protected AttributeFormatter $attributeFormatter;
+    protected array $globalAttributes;
 
     /**
      * Constructor.
      */
-    public function __construct(AttributeFormatter $attributeFormatter)
+    public function __construct(AttributeFormatter $attributeFormatter, array $globalAttributes = [])
     {
         $this->attributeFormatter = $attributeFormatter;
+        $this->globalAttributes = $globalAttributes;
     }
 
     /**
      * Build the complete OTLP payload from a log record.
      *
-     * @param LogRecord $record The Monolog log record
+     * @param mixed $record The Monolog log record (array for Monolog 2, LogRecord for Monolog 3)
      * @param SeverityMapper $severityMapper The severity mapper
      * @param string $serviceName The service name
      * @param string $environment The deployment environment
      * @return array The complete OTLP payload
      */
     public function build(
-        LogRecord $record,
+        mixed $record,
         SeverityMapper $severityMapper,
         string $serviceName,
         string $environment
@@ -47,7 +47,7 @@ class LogPayloadBuilder
                         [
                             'scope' => [
                                 'name' => 'laravel-logs',
-                                'version' => app()->version(),
+                                'version' => $this->resolveScopeVersion(),
                             ],
                             'logRecords' => [$logRecord],
                         ],
@@ -60,30 +60,40 @@ class LogPayloadBuilder
     /**
      * Create the log record structure.
      *
-     * @param LogRecord $record The Monolog log record
+     * @param mixed $record The Monolog log record
      * @param SeverityMapper $severityMapper The severity mapper
      * @return array The formatted log record
      */
-    protected function createLogRecord(LogRecord $record, SeverityMapper $severityMapper): array
+    protected function createLogRecord(mixed $record, SeverityMapper $severityMapper): array
     {
         // Format timestamp as nanoseconds since epoch
-        $timeUnixNano = (int) ($record->datetime->format('U.u') * 1e9);
-        $severityNumber = $severityMapper->mapLevelToSeverity($record->level->value);
-        $severityText = $severityMapper->getLevelName($record->level);
+        $timestamp = $this->extractTimestamp($record);
+        $timeUnixNano = (string) (int) ($timestamp->format('U.u') * 1e9);
+        $level = $this->extractLevel($record);
+        $severityNumber = $severityMapper->mapLevelToSeverity($level);
+        $severityText = $severityMapper->getLevelName($level);
+        $context = $this->extractContext($record);
+        $traceId = (string) ($context['trace_id'] ?? '');
+        $spanId = (string) ($context['span_id'] ?? '');
+        unset($context['trace_id'], $context['span_id']);
+        $attributes = array_merge(
+            $this->attributeFormatter->processContext($this->globalAttributes),
+            $this->attributeFormatter->processContext($context)
+        );
 
         // Create the log record
         return [
-            'timeUnixNano' => (string) $timeUnixNano,
+            'timeUnixNano' => $timeUnixNano,
             'severityNumber' => $severityNumber,
             'severityText' => $severityText,
             'body' => [
-                'stringValue' => $record->message,
+                'stringValue' => $this->extractMessage($record),
             ],
-            'attributes' => $this->attributeFormatter->processContext($record->context),
+            'attributes' => $attributes,
             'droppedAttributesCount' => 0,
             'flags' => 1, // Bit field used to represent boolean attributes
-            'traceId' => $record->context['trace_id'] ?? '',
-            'spanId' => $record->context['span_id'] ?? '',
+            'traceId' => $traceId,
+            'spanId' => $spanId,
         ];
     }
 
@@ -99,9 +109,95 @@ class LogPayloadBuilder
         $resourceAttributes = [];
         $resourceAttributes[] = $this->attributeFormatter->formatAttribute('service.name', $serviceName);
         $resourceAttributes[] = $this->attributeFormatter->formatAttribute('deployment.environment', $environment);
-        $resourceAttributes[] = $this->attributeFormatter->formatAttribute('service.version', config('app.version', '1.0.0'));
-        $resourceAttributes[] = $this->attributeFormatter->formatAttribute('host.name', gethostname());
+        $resourceAttributes[] = $this->attributeFormatter->formatAttribute('service.version', $this->resolveServiceVersion());
+        $resourceAttributes[] = $this->attributeFormatter->formatAttribute('host.name', gethostname() ?: 'unknown');
 
         return $resourceAttributes;
+    }
+
+    protected function resolveServiceVersion(): string
+    {
+        if (function_exists('config')) {
+            try {
+                return (string) config('app.version', '1.0.0');
+            } catch (\Throwable) {
+                // Fall back outside Laravel runtime.
+            }
+        }
+
+        return '1.0.0';
+    }
+
+    protected function resolveScopeVersion(): string
+    {
+        if (function_exists('app')) {
+            try {
+                $app = app();
+                if (is_object($app) && method_exists($app, 'version')) {
+                    return (string) $app->version();
+                }
+            } catch (\Throwable) {
+                // Fall back outside Laravel runtime.
+            }
+        }
+
+        return 'unknown';
+    }
+
+    protected function extractTimestamp(mixed $record): \DateTimeImmutable
+    {
+        if (is_array($record) && isset($record['datetime']) && $record['datetime'] instanceof \DateTimeInterface) {
+            return \DateTimeImmutable::createFromInterface($record['datetime']);
+        }
+
+        if (is_object($record) && isset($record->datetime) && $record->datetime instanceof \DateTimeInterface) {
+            return \DateTimeImmutable::createFromInterface($record->datetime);
+        }
+
+        return new \DateTimeImmutable();
+    }
+
+    protected function extractLevel(mixed $record): int
+    {
+        if (is_array($record)) {
+            return (int) ($record['level'] ?? 200);
+        }
+
+        if (is_object($record) && isset($record->level)) {
+            $level = $record->level;
+            if (is_object($level) && isset($level->value)) {
+                return (int) $level->value;
+            }
+
+            return (int) $level;
+        }
+
+        return 200;
+    }
+
+    protected function extractMessage(mixed $record): string
+    {
+        if (is_array($record)) {
+            return (string) ($record['message'] ?? '');
+        }
+
+        if (is_object($record) && isset($record->message)) {
+            return (string) $record->message;
+        }
+
+        return '';
+    }
+
+    protected function extractContext(mixed $record): array
+    {
+        if (is_array($record) && isset($record['context']) && is_array($record['context'])) {
+            return $record['context'];
+        }
+
+        if (is_object($record) && isset($record->context) && is_array($record->context)) {
+            return $record->context;
+        }
+
+        return [];
     }
 }

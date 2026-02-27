@@ -16,14 +16,14 @@ class OtelLoggingServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        if (!$this->isEnabled()) {
-            return;
-        }
-
         // Merge config
         $this->mergeConfigFrom(
             __DIR__ . '/config/otel-logging.php', 'otel-logging'
         );
+
+        if (!$this->isEnabled()) {
+            return;
+        }
 
         // Register services
         $this->app->singleton(Config::class, function ($app) {
@@ -46,10 +46,12 @@ class OtelLoggingServiceProvider extends ServiceProvider
         });
 
         // Register log channel
-        $this->app->make('config')->set('logging.channels.otel', [
-            'driver' => 'monolog',
-            'handler' => OtelLogHandler::class,
-        ]);
+        if (!$this->app->make('config')->has('logging.channels.otel')) {
+            $this->app->make('config')->set('logging.channels.otel', [
+                'driver' => 'monolog',
+                'handler' => OtelLogHandler::class,
+            ]);
+        }
     }
 
     /**
