@@ -97,12 +97,20 @@ class OtelLogHandler extends AbstractProcessingHandler
             throw new \RuntimeException('OTEL exporter endpoint is not configured.');
         }
 
-        $this->client->post($endpoint, [
+        $response = $this->client->post($endpoint, [
             'headers' => [
                 'Content-Type' => 'application/json',
             ],
             'json' => $payload,
         ]);
+
+        $statusCode = $response->getStatusCode();
+        if ($statusCode < 200 || $statusCode >= 300) {
+            throw new \RuntimeException(sprintf(
+                'OpenTelemetry exporter responded with HTTP %d.',
+                $statusCode
+            ));
+        }
     }
 
     /**

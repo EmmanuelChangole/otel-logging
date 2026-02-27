@@ -3,6 +3,7 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/changole/otel-logging.svg?style=flat-square)](https://packagist.org/packages/changole/otel-logging)
 [![Total Downloads](https://img.shields.io/packagist/dt/changole/otel-logging.svg?style=flat-square)](https://packagist.org/packages/changole/otel-logging)
 [![License](https://img.shields.io/packagist/l/changole/otel-logging?style=flat-square)](https://packagist.org/packages/changole/otel-logging)
+[![Tests](https://github.com/EmmanuelChangole/otel-logging/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/EmmanuelChangole/otel-logging/actions/workflows/tests.yml)
 
 A Laravel package that seamlessly integrates with OpenTelemetry by sending your application logs to OpenTelemetry collectors using the OTLP protocol.
 

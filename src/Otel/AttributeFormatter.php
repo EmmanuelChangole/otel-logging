@@ -58,9 +58,14 @@ class AttributeFormatter
 
         // Array values
         elseif (is_array($value)) {
+            $encoded = json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            if ($encoded === false) {
+                $encoded = '[json_encode_error] ' . json_last_error_msg();
+            }
+
             return [
                 'key' => $key,
-                'value' => ['stringValue' => json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)],
+                'value' => ['stringValue' => $encoded],
             ];
         }
 

@@ -73,9 +73,11 @@ class LogPayloadBuilder
         $severityNumber = $severityMapper->mapLevelToSeverity($level);
         $severityText = $severityMapper->getLevelName($level);
         $context = $this->extractContext($record);
-        $traceId = (string) ($context['trace_id'] ?? '');
-        $spanId = (string) ($context['span_id'] ?? '');
+        $traceId = $this->sanitizeTraceId($context['trace_id'] ?? null);
+        $spanId = $this->sanitizeSpanId($context['span_id'] ?? null);
+        $flags = $this->resolveTraceFlags($context['trace_flags'] ?? null, $traceId, $spanId);
         unset($context['trace_id'], $context['span_id']);
+        unset($context['trace_flags']);
         $attributes = array_merge(
             $this->attributeFormatter->processContext($this->globalAttributes),
             $this->attributeFormatter->processContext($context)
@@ -91,10 +93,59 @@ class LogPayloadBuilder
             ],
             'attributes' => $attributes,
             'droppedAttributesCount' => 0,
-            'flags' => 1, // Bit field used to represent boolean attributes
+            'flags' => $flags,
             'traceId' => $traceId,
             'spanId' => $spanId,
         ];
+    }
+
+    protected function sanitizeTraceId(mixed $traceId): string
+    {
+        if (!is_scalar($traceId)) {
+            return '';
+        }
+
+        $value = strtolower(trim((string) $traceId));
+        if (preg_match('/^[0-9a-f]{32}$/', $value) !== 1 || $value === str_repeat('0', 32)) {
+            return '';
+        }
+
+        return $value;
+    }
+
+    protected function sanitizeSpanId(mixed $spanId): string
+    {
+        if (!is_scalar($spanId)) {
+            return '';
+        }
+
+        $value = strtolower(trim((string) $spanId));
+        if (preg_match('/^[0-9a-f]{16}$/', $value) !== 1 || $value === str_repeat('0', 16)) {
+            return '';
+        }
+
+        return $value;
+    }
+
+    protected function resolveTraceFlags(mixed $traceFlags, string $traceId, string $spanId): int
+    {
+        if ($traceId === '' || $spanId === '') {
+            return 0;
+        }
+
+        if (is_int($traceFlags) && $traceFlags >= 0 && $traceFlags <= 255) {
+            return $traceFlags;
+        }
+
+        if (is_string($traceFlags) && ctype_digit($traceFlags)) {
+            $numericTraceFlags = (int) $traceFlags;
+            if ($numericTraceFlags >= 0 && $numericTraceFlags <= 255) {
+                return $numericTraceFlags;
+            }
+        }
+
+        // Mark as sampled by default when valid tracing context exists.
+        return 1;
     }
 
     /**

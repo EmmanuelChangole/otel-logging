@@ -38,4 +38,15 @@ class AttributeFormatterTest extends TestCase
         $this->assertContains('exception.previous', $keys);
         $this->assertContains('request_id', $keys);
     }
+
+    public function test_it_handles_array_json_encode_failures_safely(): void
+    {
+        $formatter = new AttributeFormatter();
+        $invalidUtf8 = "\xB1\x31";
+        $attribute = $formatter->formatAttribute('payload', ['bad' => $invalidUtf8]);
+
+        $this->assertSame('payload', $attribute['key']);
+        $this->assertArrayHasKey('stringValue', $attribute['value']);
+        $this->assertStringStartsWith('[json_encode_error] ', $attribute['value']['stringValue']);
+    }
 }
