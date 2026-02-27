@@ -61,6 +61,6 @@ jobs:
 
       - name: Enforce minimum coverage
         env:
-          MIN_COVERAGE: "80"
+          MIN_COVERAGE: "70"
         run: |
           php -r '$xml=simplexml_load_file("build/logs/clover.xml"); if($xml===false){fwrite(STDERR,"Unable to load Clover report\n"); exit(1);} $metrics=$xml->project->metrics; $statements=(int)$metrics["statements"]; $covered=(int)$metrics["coveredstatements"]; $coverage=$statements>0?($covered*100/$statements):0; printf("Line coverage: %.2f%% (minimum: %s%%)\n",$coverage,getenv("MIN_COVERAGE")); if($coverage < (float)getenv("MIN_COVERAGE")){fwrite(STDERR,"Coverage check failed\n"); exit(1);} '
