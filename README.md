@@ -45,6 +45,8 @@ OTEL_ENABLED=true
 OTEL_EXPORTER_ENDPOINT=https://collector.example.com/v1/logs
 OTEL_SERVICE_NAME=my-laravel-app
 OTEL_HTTP_TIMEOUT=5
+# Optional: Authorization header for collectors that require auth
+OTEL_EXPORTER_AUTH_HEADER="Basic base64(email:password)"
 ```
 
 ## Usage
@@ -117,8 +119,11 @@ Log::info('Processing order', [
 |---------------------|-------------|---------|
 | `OTEL_ENABLED` | Enable or disable OpenTelemetry logging | `false` |
 | `OTEL_EXPORTER_ENDPOINT` | The URL of the OpenTelemetry collector | `https://collector.example.com/v1/logs` |
+| `OTEL_EXPORTER_AUTH_HEADER` | Optional `Authorization` header for the collector | *(empty)* |
 | `OTEL_SERVICE_NAME` | The name of your service | `laravel-app` |
 | `OTEL_HTTP_TIMEOUT` | Timeout for HTTP requests in seconds | `5` |
+
+When `OTEL_EXPORTER_ENDPOINT` is empty, export is skipped silently instead of throwing.
 
 ## Troubleshooting
 

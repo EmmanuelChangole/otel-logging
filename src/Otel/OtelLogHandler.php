@@ -94,13 +94,20 @@ class OtelLogHandler extends AbstractProcessingHandler
     {
         $endpoint = trim($this->config->getEndpoint());
         if ($endpoint === '') {
-            throw new \RuntimeException('OTEL exporter endpoint is not configured.');
+            return;
+        }
+
+        $headers = [
+            'Content-Type' => 'application/json',
+        ];
+
+        $authHeader = trim($this->config->getAuthHeader());
+        if ($authHeader !== '') {
+            $headers['Authorization'] = $authHeader;
         }
 
         $response = $this->client->post($endpoint, [
-            'headers' => [
-                'Content-Type' => 'application/json',
-            ],
+            'headers' => $headers,
             'json' => $payload,
         ]);
 
