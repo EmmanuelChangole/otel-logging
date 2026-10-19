@@ -37,6 +37,14 @@ class Config
     }
 
     /**
+     * Get the Authorization header value for the exporter endpoint.
+     */
+    public function getAuthHeader(): string
+    {
+        return (string) $this->config->get('otel-logging.exporter.auth_header', '');
+    }
+
+    /**
      * Get the service name for this application.
      *
      * @return string The service name

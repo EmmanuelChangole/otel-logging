@@ -14,6 +14,7 @@ return [
     'exporter' => [
         'endpoint' => env('OTEL_EXPORTER_ENDPOINT'),
         'timeout' => env('OTEL_HTTP_TIMEOUT', 5),
+        'auth_header' => env('OTEL_EXPORTER_AUTH_HEADER', ''),
     ],
 
     // Service information

@@ -59,6 +59,26 @@ class OtelLogHandler extends AbstractProcessingHandler
             'http_errors' => false,
             'timeout' => $this->config->getTimeout(),
         ]);
+
+        if (trim($this->config->getEndpoint()) === '') {
+            // Warn once here rather than failing on every log call
+            $this->isDisabled = true;
+            $this->reportMissingEndpoint();
+        }
+    }
+
+    /**
+     * Report that the exporter is enabled but has no endpoint configured.
+     */
+    protected function reportMissingEndpoint(): void
+    {
+        $message = 'OpenTelemetry logging is enabled but OTEL_EXPORTER_ENDPOINT is empty; export is disabled.';
+
+        if ($this->fallbackLogger) {
+            $this->fallbackLogger->warning($message);
+        } elseif ($this->config->isDebugEnabled()) {
+            error_log($message);
+        }
     }
 
     /**
@@ -94,13 +114,20 @@ class OtelLogHandler extends AbstractProcessingHandler
     {
         $endpoint = trim($this->config->getEndpoint());
         if ($endpoint === '') {
-            throw new \RuntimeException('OTEL exporter endpoint is not configured.');
+            return;
+        }
+
+        $headers = [
+            'Content-Type' => 'application/json',
+        ];
+
+        $authHeader = trim($this->config->getAuthHeader());
+        if ($authHeader !== '') {
+            $headers['Authorization'] = $authHeader;
         }
 
         $response = $this->client->post($endpoint, [
-            'headers' => [
-                'Content-Type' => 'application/json',
-            ],
+            'headers' => $headers,
             'json' => $payload,
         ]);
 
