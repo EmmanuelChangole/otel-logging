@@ -79,9 +79,14 @@ class OtelLogHandlerTest extends TestCase
         $handler->publicWrite($this->makeRecord());
     }
 
-    public function test_it_skips_export_when_endpoint_is_empty(): void
+    public function test_it_skips_export_and_warns_once_when_endpoint_is_empty(): void
     {
-        $client = $this->makeClientWithResponses(new Response(204));
+        $mock = new MockHandler([new Response(204)]);
+        $history = [];
+        $stack = HandlerStack::create($mock);
+        $stack->push(\GuzzleHttp\Middleware::history($history));
+        $client = new Client(['handler' => $stack, 'http_errors' => false]);
+
         $config = new Config(new Repository([
             'otel-logging' => [
                 'enabled' => true,
@@ -96,6 +101,10 @@ class OtelLogHandlerTest extends TestCase
         ]));
 
         $fallbackLogger = $this->createMock(LoggerInterface::class);
+        $fallbackLogger
+            ->expects($this->once())
+            ->method('warning')
+            ->with($this->stringContains('OTEL_EXPORTER_ENDPOINT is empty'));
         $fallbackLogger->expects($this->never())->method('error');
 
         $handler = new class(Logger::DEBUG, true, $client, $config, null, null, null, $fallbackLogger) extends OtelLogHandler {
@@ -105,9 +114,11 @@ class OtelLogHandlerTest extends TestCase
             }
         };
 
-        // Must not throw and must not report to fallback logger.
+        // Repeated log calls must not send requests or warn again.
         $handler->publicWrite($this->makeRecord());
-        $this->addToAssertionCount(1);
+        $handler->publicWrite($this->makeRecord());
+
+        $this->assertCount(0, $history);
     }
 
     public function test_it_sends_authorization_header_when_configured(): void
