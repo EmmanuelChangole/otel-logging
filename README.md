@@ -123,7 +123,7 @@ Log::info('Processing order', [
 | `OTEL_SERVICE_NAME` | The name of your service | `laravel-app` |
 | `OTEL_HTTP_TIMEOUT` | Timeout for HTTP requests in seconds | `5` |
 
-When `OTEL_EXPORTER_ENDPOINT` is empty, export is skipped silently instead of throwing.
+When `OTEL_ENABLED=true` but `OTEL_EXPORTER_ENDPOINT` is empty, export is disabled and a single warning is written to the fallback logger instead of an error on every log call.
 
 ## Troubleshooting
 
