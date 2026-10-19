@@ -14,7 +14,7 @@ A Laravel package that seamlessly integrates with OpenTelemetry by sending your 
 - 🛡️ Handles exceptions gracefully with comprehensive error reporting
 - ⚙️ Configurable via environment variables or config file
 - 🔍 Supports distributed tracing context (trace and span IDs)
-- 🔌 Compatible with Laravel 8, 9, 10, 11 and 12
+- 🔌 Compatible with Laravel 8, 9, 10, 11, 12 and 13
 
 ## Installation
 
